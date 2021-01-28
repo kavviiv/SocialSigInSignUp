@@ -8,31 +8,6 @@ package database
 // 	_ "github.com/lib/pq"
 // )
 
-// // var db *sql.DB
-
-// // UserData :
-// type UserData struct {
-// 	GoogleID   string `json:"googleID"`
-// 	FacebookID string `json:"facebookID"`
-// 	LineID     string `json:"lineID"`
-// 	Email      string `json:"email"`
-// }
-
-// // ConnDb :
-// // func ConnDb(db string) {
-// // 	conndb := "user=postgres dbname=postgres password=293161 host=127.0.0.1 sslmode=disable"
-// // 	db, err := sql.Open("postgres", conndb)
-// // 	if err != nil {
-// // 		log.Fatal(err)
-// // 	}
-// // 	// defer db.Close()
-// // 	return
-// // }
-
-// func init(){
-
-// }
-
 // // FetchData :
 // func FetchData() []UserData {
 // 	conndb := "user=postgres dbname=postgres password=293161 host=127.0.0.1 sslmode=disable"

@@ -68,12 +68,12 @@ func handleLineCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 
 	for _, el := range dbData {
-		if data.UserID == el.LineID {
+		if data.UserID == *el.LineID {
 			// fmt.Println("User ID =", data.UserID)
 			// fmt.Println("DB_UserID =", el.LineID)
 			// fmt.Println("true")
 			// fmt.Println("--------------------------------------------")
-			lineID = el.LineID
+			lineID = *el.LineID
 			break
 		} else {
 			// fmt.Println("User ID =", data.UserID)

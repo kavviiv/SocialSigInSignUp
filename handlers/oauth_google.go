@@ -75,42 +75,46 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 
 	for _, el := range dbData {
-		if data.Email == el.Email {
-			// fmt.Println("UserID =", data.Email)
-			// fmt.Println("DB_Email =", el.Email)
-			// fmt.Println("true")
-			// fmt.Println("--------------------------------------------")
-			googleEmail = el.Email
-			break
-		} else {
-			// fmt.Println("Eamil =", data.Email)
-			// fmt.Println("DB_Email =", el.Email)
-			// fmt.Println("false")
-			// fmt.Println("--------------------------------------------")
-			googleEmail = ""
+		if el.Email != nil {
+			if data.Email == *el.Email {
+				// fmt.Println("UserID =", data.Email)
+				// fmt.Println("DB_Email =", el.Email)
+				// fmt.Println("true")
+				// fmt.Println("--------------------------------------------")
+				// googleEmail = *el.Email
+				http.ServeFile(w, r, "templates/ConnectSocial.html")
+				break
+			} else {
+				// fmt.Println("Eamil =", data.Email)
+				// fmt.Println("DB_Email =", el.Email)
+				// fmt.Println("false")
+				// fmt.Println("--------------------------------------------")
+				// googleEmail = ""
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			}
 		}
 	}
 
-	if googleEmail == "" {
-		fmt.Println()
-		fmt.Println("false")
-		fmt.Println("Your Email mismatch")
-		fmt.Println("============================================")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	}
+	// if googleEmail == "" {
+	// 	fmt.Println()
+	// 	fmt.Println("false")
+	// 	fmt.Println("Your Email mismatch")
+	// 	fmt.Println("============================================")
+	// 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	// }
 
-	if googleEmail == data.Email {
-		fmt.Println()
-		fmt.Println("true")
-		fmt.Println("Email is", googleEmail)
-		fmt.Println("User Eamil is", data.Email)
-		fmt.Println("===========================================")
-		http.ServeFile(w, r, "templates/ConnectSocial.html")
-	}
+	// if googleEmail == data.Email {
+	// 	fmt.Println()
+	// 	fmt.Println("true")
+	// 	fmt.Println("Email is", googleEmail)
+	// 	fmt.Println("User Eamil is", data.Email)
+	// 	fmt.Println("===========================================")
+	// 	http.ServeFile(w, r, "templates/ConnectSocial.html")
+	// }
 }
 
 func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Google Register Callback")
+	fmt.Println("Google Register")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
 		fmt.Println(err.Error())
@@ -132,6 +136,7 @@ func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
+	return
 }
 
 func getUserGoogle(state string, code string) ([]byte, error) {

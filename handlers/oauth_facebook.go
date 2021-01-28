@@ -92,12 +92,12 @@ func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 
 	for _, el := range dbData {
-		if data.UserID == el.FacebookID {
+		if data.UserID == *el.FacebookID {
 			// fmt.Println("User ID =", data.UserID)
 			// fmt.Println("DB_UserID =", el.FacebookID)
 			// fmt.Println("true")
 			// fmt.Println("--------------------------------------------")
-			facebookID = el.FacebookID
+			facebookID = *el.FacebookID
 			break
 		} else {
 			// fmt.Println("User ID =", data.UserID)

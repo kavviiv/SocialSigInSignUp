@@ -22,8 +22,9 @@ func OpenConn() *sql.DB {
 		panic(err)
 	}
 
+	fmt.Println()
 	fmt.Println("Successfully connected!")
-	fmt.Println("_________________________________________")
+	fmt.Println()
 
 	return db
 }
@@ -46,6 +47,7 @@ func FetchData() []UserData {
 	// WHERE return user_id
 	rows, err := db.Query("SELECT google_id, facebook_id, line_id, email FROM test")
 	if err != nil {
+		log.Fatalln("Error database query in Fetch Data")
 		log.Fatal(err)
 	}
 	defer rows.Close()
@@ -53,9 +55,9 @@ func FetchData() []UserData {
 	for rows.Next() {
 		err := rows.Scan(&source.GoogleID, &source.FacebookID, &source.LineID, &source.Email)
 		if err != nil {
+			fmt.Println("Error row scan in Fetch Data")
 			fmt.Print(err)
 		}
-
 		data = append(data, source)
 	}
 	return data
@@ -72,6 +74,7 @@ func CheckData() []UserData {
 	// WHERE return user_id
 	rows, err := db.Query("SELECT google_id, facebook_id, line_id, email FROM test WHERE user_id='654321'")
 	if err != nil {
+		log.Fatalln("Error database query in Check Data")
 		log.Fatal(err)
 	}
 	defer rows.Close()
@@ -79,10 +82,13 @@ func CheckData() []UserData {
 	for rows.Next() {
 		err := rows.Scan(&source.GoogleID, &source.FacebookID, &source.LineID, &source.Email)
 		if err != nil {
-			fmt.Print(err)
+			fmt.Println(("Error row scan in Check Data"))
+			fmt.Println(err)
+			// data = append(data, source)
 		}
 
 		data = append(data, source)
 	}
+	fmt.Println()
 	return data
 }
