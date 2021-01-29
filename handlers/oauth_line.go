@@ -68,38 +68,49 @@ func handleLineCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 
 	for _, el := range dbData {
-		if data.UserID == *el.LineID {
-			// fmt.Println("User ID =", data.UserID)
-			// fmt.Println("DB_UserID =", el.LineID)
-			// fmt.Println("true")
-			// fmt.Println("--------------------------------------------")
-			lineID = *el.LineID
-			break
-		} else {
-			// fmt.Println("User ID =", data.UserID)
-			// fmt.Println("DB_UserID =", el.LineID)
-			// fmt.Println("false")
-			// fmt.Println("--------------------------------------------")
-			lineID = ""
+		if el.LineID != nil {
+			if data.UserID == *el.LineID {
+				// fmt.Println("User ID =", data.UserID)
+				// fmt.Println("DB_UserID =", el.LineID)
+				// fmt.Println("true")
+				// fmt.Println("--------------------------------------------")
+				http.ServeFile(w, r, "templates/mainPage.html")
+				break
+			} else {
+				// fmt.Println("User ID =", data.UserID)
+				// fmt.Println("DB_UserID =", el.LineID)
+				// fmt.Println("false")
+				// fmt.Println("--------------------------------------------")
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			}
 		}
 	}
+}
 
-	if lineID == "" {
-		fmt.Println()
-		fmt.Println("false")
-		fmt.Println("User ID mismatch")
-		fmt.Println("============================================")
+func handleLineRegister(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Google Register")
+	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
+	if err != nil {
+		fmt.Println(err.Error())
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
 	}
 
-	if lineID == data.UserID {
-		fmt.Println()
-		fmt.Println("true")
-		fmt.Println("User ID is", lineID)
-		fmt.Println("Your User ID is", data.UserID)
-		fmt.Println("===========================================")
-		http.ServeFile(w, r, "templates/success.html")
+	var data = UserGoogle{}
+	json.Unmarshal(content, &data)
+
+	db := database.OpenConn()
+
+	sqlStatement := `INSERT INTO person (google_id) VALUES ($1) WHERE user_id='654321'`
+	_, err = db.Exec(sqlStatement, data.UserID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		panic(err)
 	}
+
+	w.WriteHeader(http.StatusOK)
+	defer db.Close()
+	return
 }
 
 func getUserLine(state string, code string) ([]byte, error) {

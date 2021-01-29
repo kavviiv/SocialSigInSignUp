@@ -92,37 +92,22 @@ func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 
 	for _, el := range dbData {
-		if data.UserID == *el.FacebookID {
-			// fmt.Println("User ID =", data.UserID)
-			// fmt.Println("DB_UserID =", el.FacebookID)
-			// fmt.Println("true")
-			// fmt.Println("--------------------------------------------")
-			facebookID = *el.FacebookID
-			break
-		} else {
-			// fmt.Println("User ID =", data.UserID)
-			// fmt.Println("DB_UserID =", el.FacebookID)
-			// fmt.Println("false")
-			// fmt.Println("--------------------------------------------")
-			facebookID = ""
+		if el.FacebookID != nil {
+			if data.UserID == *el.FacebookID {
+				// fmt.Println("User ID =", data.UserID)
+				// fmt.Println("DB_UserID =", el.FacebookID)
+				// fmt.Println("true")
+				// fmt.Println("--------------------------------------------")
+				http.ServeFile(w, r, "templates/mainPage.html")
+				break
+			} else {
+				// fmt.Println("User ID =", data.UserID)
+				// fmt.Println("DB_UserID =", el.FacebookID)
+				// fmt.Println("false")
+				// fmt.Println("--------------------------------------------")
+				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			}
 		}
-	}
-
-	if facebookID == "" {
-		fmt.Println()
-		fmt.Println("false")
-		fmt.Println("User ID mismatch")
-		fmt.Println("============================================")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	}
-
-	if facebookID == data.UserID {
-		fmt.Println()
-		fmt.Println("true")
-		fmt.Println("User ID is", facebookID)
-		fmt.Println("Your User ID is", data.UserID)
-		fmt.Println("===========================================")
-		http.ServeFile(w, r, "templates/success.html")
 	}
 }
 

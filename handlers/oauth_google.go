@@ -81,39 +81,28 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 				// fmt.Println("DB_Email =", el.Email)
 				// fmt.Println("true")
 				// fmt.Println("--------------------------------------------")
-				// googleEmail = *el.Email
-				http.ServeFile(w, r, "templates/ConnectSocial.html")
+				http.ServeFile(w, r, "templates/mainPage.html")
 				break
 			} else {
 				// fmt.Println("Eamil =", data.Email)
 				// fmt.Println("DB_Email =", el.Email)
 				// fmt.Println("false")
 				// fmt.Println("--------------------------------------------")
-				// googleEmail = ""
 				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			}
 		}
 	}
-
-	// if googleEmail == "" {
-	// 	fmt.Println()
-	// 	fmt.Println("false")
-	// 	fmt.Println("Your Email mismatch")
-	// 	fmt.Println("============================================")
-	// 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	// }
-
-	// if googleEmail == data.Email {
-	// 	fmt.Println()
-	// 	fmt.Println("true")
-	// 	fmt.Println("Email is", googleEmail)
-	// 	fmt.Println("User Eamil is", data.Email)
-	// 	fmt.Println("===========================================")
-	// 	http.ServeFile(w, r, "templates/ConnectSocial.html")
-	// }
 }
 
 func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
+	url := googleOauthConfig.AuthCodeURL(oauthStateStringGoogle)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	fmt.Println()
+	fmt.Println("Register")
+	fmt.Println()
+}
+
+func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Google Register")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
@@ -124,16 +113,19 @@ func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
 
 	var data = UserGoogle{}
 	json.Unmarshal(content, &data)
+	fmt.Printf("Register Data = %s\n", content)
 
 	db := database.OpenConn()
 
-	sqlStatement := `INSERT INTO person (google_id) VALUES ($1) WHERE user_id='654321'`
+	sqlStatement := `UPDATE test SET google_id = $1 WHERE user_id='654321'`
 	_, err = db.Exec(sqlStatement, data.UserID)
+	fmt.Println(data.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
 
+	fmt.Println("Success")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 	return
