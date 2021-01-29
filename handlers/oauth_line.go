@@ -43,11 +43,12 @@ func handleLineLogin(w http.ResponseWriter, r *http.Request) {
 	url := lineOauthConfig.AuthCodeURL(oauthStateStringLine)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
-	fmt.Println("Complete")
+	fmt.Println("Line login success")
 	fmt.Println()
 }
 
 func handleLineCallback(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Line login callback")
 	content, err := getUserLine(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
 		fmt.Println(err.Error())
@@ -58,8 +59,6 @@ func handleLineCallback(w http.ResponseWriter, r *http.Request) {
 
 	var data UserLine
 	json.Unmarshal(content, &data)
-	// fmt.Printf("Line = %s\n", content)
-	// fmt.Println()
 
 	dbData := database.FetchData()
 
@@ -70,17 +69,9 @@ func handleLineCallback(w http.ResponseWriter, r *http.Request) {
 	for _, el := range dbData {
 		if el.LineID != nil {
 			if data.UserID == *el.LineID {
-				// fmt.Println("User ID =", data.UserID)
-				// fmt.Println("DB_UserID =", el.LineID)
-				// fmt.Println("true")
-				// fmt.Println("--------------------------------------------")
 				http.ServeFile(w, r, "templates/mainPage.html")
 				break
 			} else {
-				// fmt.Println("User ID =", data.UserID)
-				// fmt.Println("DB_UserID =", el.LineID)
-				// fmt.Println("false")
-				// fmt.Println("--------------------------------------------")
 				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			}
 		}
@@ -88,7 +79,7 @@ func handleLineCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleLineRegister(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Google Register")
+	fmt.Println("Line register callback")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
 		fmt.Println(err.Error())
@@ -101,13 +92,14 @@ func handleLineRegister(w http.ResponseWriter, r *http.Request) {
 
 	db := database.OpenConn()
 
-	sqlStatement := `INSERT INTO person (google_id) VALUES ($1) WHERE user_id='654321'`
+	sqlStatement := `INSERT INTO test (line_id) VALUES ($1) WHERE user_id='654321'`
 	_, err = db.Exec(sqlStatement, data.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
 
+	fmt.Println("Line register success")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 	return

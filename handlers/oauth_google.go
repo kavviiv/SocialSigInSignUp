@@ -45,7 +45,7 @@ func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(oauthStateStringGoogle)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
-	fmt.Println("Login")
+	fmt.Println("Google login success")
 	fmt.Println()
 }
 
@@ -60,11 +60,6 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 
 	var data = UserGoogle{}
 	json.Unmarshal(content, &data)
-	// fmt.Printf("Google = %s\n", content)
-	// fmt.Println(reflect.ValueOf(data).Kind())
-
-	// fmt.Printf("Data = %s\n", content)
-	// fmt.Println()
 
 	dbData := database.FetchData()
 
@@ -77,17 +72,9 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	for _, el := range dbData {
 		if el.Email != nil {
 			if data.Email == *el.Email {
-				// fmt.Println("UserID =", data.Email)
-				// fmt.Println("DB_Email =", el.Email)
-				// fmt.Println("true")
-				// fmt.Println("--------------------------------------------")
 				http.ServeFile(w, r, "templates/mainPage.html")
 				break
 			} else {
-				// fmt.Println("Eamil =", data.Email)
-				// fmt.Println("DB_Email =", el.Email)
-				// fmt.Println("false")
-				// fmt.Println("--------------------------------------------")
 				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			}
 		}
@@ -98,12 +85,12 @@ func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(oauthStateStringGoogle)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
-	fmt.Println("Register")
+	fmt.Println("Google register")
 	fmt.Println()
 }
 
 func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Google Register")
+	fmt.Println("Google register callback")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
 		fmt.Println(err.Error())
@@ -117,15 +104,15 @@ func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
 
 	db := database.OpenConn()
 
-	sqlStatement := `UPDATE test SET google_id = $1 WHERE user_id='654321'`
-	_, err = db.Exec(sqlStatement, data.UserID)
+	sqlStatement := `UPDATE test SET google_id = $1, email = $2 WHERE user_id='654321'`
+	_, err = db.Exec(sqlStatement, data.UserID, data.Email)
 	fmt.Println(data.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
 
-	fmt.Println("Success")
+	fmt.Println("Google register success")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 	return

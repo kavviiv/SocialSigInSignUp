@@ -43,11 +43,12 @@ func handleFacebookLogin(w http.ResponseWriter, r *http.Request) {
 	url := facebookOauthConfig.AuthCodeURL(oauthStateStringFacebook)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
-	fmt.Println("Complete")
+	fmt.Println("Facebook login success")
 	fmt.Println()
 }
 
 func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Facebook login callback")
 	state := r.FormValue("state")
 	if state != oauthStateStringFacebook {
 		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateStringFacebook, state)
@@ -82,7 +83,6 @@ func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
 
 	var data UserFacebook
 	json.Unmarshal(response, &data)
-	// fmt.Printf("Facebook = %s\n", response)
 
 	dbData := database.FetchData()
 
@@ -94,17 +94,9 @@ func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
 	for _, el := range dbData {
 		if el.FacebookID != nil {
 			if data.UserID == *el.FacebookID {
-				// fmt.Println("User ID =", data.UserID)
-				// fmt.Println("DB_UserID =", el.FacebookID)
-				// fmt.Println("true")
-				// fmt.Println("--------------------------------------------")
 				http.ServeFile(w, r, "templates/mainPage.html")
 				break
 			} else {
-				// fmt.Println("User ID =", data.UserID)
-				// fmt.Println("DB_UserID =", el.FacebookID)
-				// fmt.Println("false")
-				// fmt.Println("--------------------------------------------")
 				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			}
 		}
@@ -112,6 +104,7 @@ func handleFacebookCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleFacebookRegister(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Facebook register callback")
 	state := r.FormValue("state")
 	if state != oauthStateStringFacebook {
 		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateStringFacebook, state)
@@ -146,16 +139,8 @@ func handleFacebookRegister(w http.ResponseWriter, r *http.Request) {
 
 	var data UserFacebook
 	json.Unmarshal(response, &data)
-	// // fmt.Printf("Facebook = %s\n", response)
 
 	db := database.OpenConn()
-
-	// var data UserFacebook
-	// err := json.NewDecoder(r.Body).Decode(&data)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusBadRequest)
-	// 	return
-	// }
 
 	sqlQuery := `INSERT INTO test (facebook_id) VALUES ($1) WHERE user_id='654321'`
 	_, err = db.Exec(sqlQuery, data.UserID)
@@ -164,6 +149,7 @@ func handleFacebookRegister(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	fmt.Println("Facebook register success")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 }

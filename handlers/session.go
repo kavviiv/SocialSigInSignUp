@@ -36,8 +36,7 @@ func clearSession(response http.ResponseWriter) {
 }
 
 func logoutHandler(response http.ResponseWriter, request *http.Request) {
-	fmt.Println("logOut")
 	clearSession(response)
-	http.Redirect(response, request, "/", 302)
-	fmt.Println("logOut")
+	http.Redirect(response, request, "/", 307)
+	fmt.Println("log out success")
 }
