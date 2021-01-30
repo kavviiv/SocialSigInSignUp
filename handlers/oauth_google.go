@@ -22,7 +22,7 @@ var (
 	googleEmail = ""
 )
 
-func init() {
+func config() {
 	err := godotenv.Load()
 	log.Printf("%s", err)
 	if err != nil {
@@ -42,6 +42,7 @@ func init() {
 }
 
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
+	config()
 	url := googleOauthConfig.AuthCodeURL(oauthStateStringGoogle)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
@@ -50,6 +51,7 @@ func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
+	config()
 	fmt.Println("Google Login Callback")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
@@ -82,6 +84,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
+	config()
 	url := googleOauthConfig.AuthCodeURL(oauthStateStringGoogle)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
@@ -90,6 +93,7 @@ func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
+	config()
 	fmt.Println("Google register callback")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
@@ -106,20 +110,20 @@ func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
 
 	sqlStatement := `UPDATE test SET google_id = $1, email = $2 WHERE user_id='654321'`
 	_, err = db.Exec(sqlStatement, data.UserID, data.Email)
-	fmt.Println(data.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		panic(err)
 	}
 
 	fmt.Println("Google register success")
+	http.ServeFile(w, r, "templates/mainPage.html")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 	return
 }
 
 func getUserGoogle(state string, code string) ([]byte, error) {
-
+	config()
 	if state != oauthStateStringGoogle {
 		return nil, fmt.Errorf("invalid oauth state")
 	}

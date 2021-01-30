@@ -150,6 +150,7 @@ func handleFacebookRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Facebook register success")
+	http.ServeFile(w, r, "templates/mainPage.html")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 }

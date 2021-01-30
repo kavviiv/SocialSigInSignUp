@@ -100,6 +100,7 @@ func handleLineRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Line register success")
+	http.ServeFile(w, r, "templates/mainPage.html")
 	w.WriteHeader(http.StatusOK)
 	defer db.Close()
 	return
