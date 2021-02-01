@@ -10,7 +10,7 @@ import (
 
 // OpenConn :
 func OpenConn() *sql.DB {
-	conndb := "user=postgres dbname=postgres password=293161 host=127.0.0.1 sslmode=disable"
+	conndb := "user=postgres dbname=postgres password=130242 host=127.0.0.1 sslmode=disable"
 	db, err := sql.Open("postgres", conndb)
 	if err != nil {
 		panic(err)

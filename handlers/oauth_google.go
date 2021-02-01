@@ -20,6 +20,8 @@ var (
 	oauthStateStringGoogle = "random"
 
 	googleEmail = ""
+
+	signin, regist string
 )
 
 func config() {
@@ -33,7 +35,7 @@ func config() {
 	googleOauthConfig = &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_OAUTH_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("GOOGLE_OAUTH_CALLBACK"),
+		RedirectURL:  os.Getenv("oauthURI") + "googlecallback",
 		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"openid"},
@@ -48,39 +50,8 @@ func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 	fmt.Println("Google login success")
 	fmt.Println()
-}
+	signin = "true"
 
-func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
-	config()
-	fmt.Println("Google Login Callback")
-	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
-	if err != nil {
-		fmt.Println(err.Error())
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
-
-	var data = UserGoogle{}
-	json.Unmarshal(content, &data)
-
-	dbData := database.FetchData()
-
-	fmt.Println()
-	fmt.Printf("Your User ID = %s\n", data.UserID)
-	fmt.Printf("Your Email = %s\n", data.Email)
-	fmt.Println("=====================================================")
-	fmt.Println()
-
-	for _, el := range dbData {
-		if el.Email != nil {
-			if data.Email == *el.Email {
-				http.ServeFile(w, r, "templates/mainPage.html")
-				break
-			} else {
-				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-			}
-		}
-	}
 }
 
 func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
@@ -89,12 +60,13 @@ func handleGoogleRegister(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	fmt.Println()
 	fmt.Println("Google register")
+	//handleGoogleRegisterCallback(w, r)
 	fmt.Println()
+	regist = "true"
 }
 
-func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
+func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	config()
-	fmt.Println("Google register callback")
 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
 		fmt.Println(err.Error())
@@ -102,25 +74,108 @@ func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var data = UserGoogle{}
-	json.Unmarshal(content, &data)
-	fmt.Printf("Register Data = %s\n", content)
+	if signin == "true" {
+		fmt.Println("Google Login Callback")
 
-	db := database.OpenConn()
+		var data = UserGoogle{}
+		json.Unmarshal(content, &data)
 
-	sqlStatement := `UPDATE test SET google_id = $1, email = $2 WHERE user_id='654321'`
-	_, err = db.Exec(sqlStatement, data.UserID, data.Email)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		panic(err)
+		dbData := database.FetchData()
+
+		fmt.Println()
+		fmt.Printf("Your User ID = %s\n", data.UserID)
+		fmt.Printf("Your Email = %s\n", data.Email)
+		fmt.Println("=====================================================")
+		fmt.Println()
+
+		for _, el := range dbData {
+			if el.Email != nil {
+				if data.Email == *el.Email {
+					http.ServeFile(w, r, "templates/mainPage.html")
+					break
+				} else {
+					http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+				}
+			}
+		}
+
 	}
 
-	fmt.Println("Google register success")
-	http.ServeFile(w, r, "templates/mainPage.html")
-	w.WriteHeader(http.StatusOK)
-	defer db.Close()
-	return
+	if regist == "true" {
+		var data = UserGoogle{}
+		json.Unmarshal(content, &data)
+		fmt.Printf("Register Data = %s\n", content)
+
+		db := database.OpenConn()
+
+		sqlStatement := `UPDATE test SET google_id = $1, email = $2 WHERE user_id='123456'`
+		_, err = db.Exec(sqlStatement, data.UserID, data.Email)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			panic(err)
+		}
+
+		fmt.Println("Google register success")
+		http.Redirect(w, r, "/mainPage.html", 307)
+		//w.WriteHeader(http.StatusOK)
+		defer db.Close()
+		return
+	}
+	// fmt.Println("Google Login Callback")
+
+	// var data = UserGoogle{}
+	// json.Unmarshal(content, &data)
+
+	// dbData := database.FetchData()
+
+	// fmt.Println()
+	// fmt.Printf("Your User ID = %s\n", data.UserID)
+	// fmt.Printf("Your Email = %s\n", data.Email)
+	// fmt.Println("=====================================================")
+	// fmt.Println()
+
+	// for _, el := range dbData {
+	// 	if el.Email != nil {
+	// 		if data.Email == *el.Email {
+	// 			http.ServeFile(w, r, "templates/mainPage.html")
+	// 			break
+	// 		} else {
+	// 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	// 		}
+	// 	}
+	// }
 }
+
+// func handleGoogleRegisterCallback(w http.ResponseWriter, r *http.Request) {
+
+// 	//	config()
+// 	fmt.Println("Google register callback")
+// 	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+// 		return
+// 	}
+
+// 	var data = UserGoogle{}
+// 	json.Unmarshal(content, &data)
+// 	fmt.Printf("Register Data = %s\n", content)
+
+// 	db := database.OpenConn()
+
+// 	sqlStatement := `INSERT INTO test (google_id, email) Value ($1, $2) WHERE user_id='123456'`
+// 	_, err = db.Exec(sqlStatement, data.UserID, data.Email)
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		panic(err)
+// 	}
+
+// 	fmt.Println("Google register success")
+// 	http.ServeFile(w, r, "templates/mainPage.html")
+// 	w.WriteHeader(http.StatusOK)
+// 	defer db.Close()
+// 	return
+// }
 
 func getUserGoogle(state string, code string) ([]byte, error) {
 	config()

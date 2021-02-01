@@ -18,7 +18,8 @@ var (
 
 	oauthStateStringLine = "random"
 
-	lineID = ""
+	lineID                   = ""
+	line_signin, line_regist string
 )
 
 func init() {
@@ -30,7 +31,7 @@ func init() {
 	lineOauthConfig = &oauth2.Config{
 		ClientID:     os.Getenv("LINE_OAUTH_CLIENT_ID"),
 		ClientSecret: os.Getenv("LINE_OAUTH_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("LINE_OAUTH_CALLBACK"),
+		RedirectURL:  os.Getenv("oauthURI") + "linecallback",
 		Scopes:       []string{"profile"},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://access.line.me/oauth2/v2.1/authorize?response_type=code",
@@ -45,65 +46,64 @@ func handleLineLogin(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 	fmt.Println("Line login success")
 	fmt.Println()
+	line_signin = "true"
+}
+
+func handleLineRegister(w http.ResponseWriter, r *http.Request) {
+	url := lineOauthConfig.AuthCodeURL(oauthStateStringLine)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	fmt.Println("Regist Line")
+	line_regist = "true"
 }
 
 func handleLineCallback(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Line login callback")
+	fmt.Println("Line callback")
+	fmt.Println(line_regist)
 	content, err := getUserLine(r.FormValue("state"), r.FormValue("code"))
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Print(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		fmt.Println("l")
 		return
 	}
+	if line_signin == "true" {
+		var data UserLine
+		json.Unmarshal(content, &data)
+		dbData := database.FetchData()
+		fmt.Printf("Your User ID = %s\n", data.UserID)
+		fmt.Println("=====================================================")
+		fmt.Println()
 
-	var data UserLine
-	json.Unmarshal(content, &data)
-
-	dbData := database.FetchData()
-
-	fmt.Printf("Your User ID = %s\n", data.UserID)
-	fmt.Println("=====================================================")
-	fmt.Println()
-
-	for _, el := range dbData {
-		if el.LineID != nil {
-			if data.UserID == *el.LineID {
-				http.ServeFile(w, r, "templates/mainPage.html")
-				break
-			} else {
-				http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		for _, el := range dbData {
+			if el.LineID != nil {
+				if data.UserID == *el.LineID {
+					http.ServeFile(w, r, "templates/mainPage.html")
+					break
+				} else {
+					http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+				}
 			}
 		}
 	}
-}
 
-func handleLineRegister(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Line register callback")
-	content, err := getUserGoogle(r.FormValue("state"), r.FormValue("code"))
-	if err != nil {
-		fmt.Println(err.Error())
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	if line_regist == "true" {
+		var data = UserLine{}
+		json.Unmarshal(content, &data)
+		db := database.OpenConn()
+		sqlStatement := `UPDATE test SET line_id = $1 WHERE user_id='123456'`
+		_, err = db.Exec(sqlStatement, data.UserID)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			panic(err)
+		}
+		fmt.Println("Line register success")
+		http.ServeFile(w, r, "templates/mainPage.html")
+		w.WriteHeader(http.StatusOK)
+		defer db.Close()
 		return
 	}
 
-	var data = UserGoogle{}
-	json.Unmarshal(content, &data)
-
-	db := database.OpenConn()
-
-	sqlStatement := `INSERT INTO test (line_id) VALUES ($1) WHERE user_id='654321'`
-	_, err = db.Exec(sqlStatement, data.UserID)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		panic(err)
-	}
-
-	fmt.Println("Line register success")
-	http.ServeFile(w, r, "templates/mainPage.html")
-	w.WriteHeader(http.StatusOK)
-	defer db.Close()
-	return
 }
 
 func getUserLine(state string, code string) ([]byte, error) {

@@ -17,6 +17,11 @@ func Oauth() http.Handler {
 	mux.HandleFunc("/facebookcallback", handleFacebookCallback)
 	mux.HandleFunc("/line/login", handleLineLogin)
 	mux.HandleFunc("/linecallback", handleLineCallback)
+	mux.HandleFunc("/logout", logoutHandler)
+	mux.HandleFunc("/googleregister", handleGoogleRegister)
+	mux.HandleFunc("/facebookregister", handleFacebookRegister)
+	mux.HandleFunc("/lineregister", handleLineRegister)
+	//mux.HandleFunc("/regist/googlecallback", handleGoogleRegisterCallback)
 
 	// for _, el := range fetch {
 	// 	if el.GoogleID != nil && el.Email != nil && el.FacebookID != nil || el.LineID != nil {
@@ -75,7 +80,7 @@ func login() {
 
 // Register :
 func register() {
-	// mux := http.NewServeMux()
+	// := http.NewServeMux() // mux := http.NewServeMux()
 	// fetch := database.FetchData()
 
 	// // Root
@@ -95,8 +100,8 @@ func register() {
 	// 	// }
 
 	// if el.GoogleID == nil {
-	http.HandleFunc("/google/register", handleGoogleRegister)
-	http.HandleFunc("/googlecallback", handleGoogleRegisterCallback)
+	//mux.HandleFunc("/register", handleGoogleRegister)
+	//mux.HandleFunc("/googlecallback", handleGoogleRegisterCallback)
 	// 		fmt.Println("Google ID is nill")
 	// }
 

@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/mainPage.css">
     <link rel="stylesheet" href="css/index.css">
+    <script src="Script/Func.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <div class="card">
         <img src="http://happyfacesparty.com/wp-content/uploads/2019/06/avataaars-Brittany-283x300.png" alt="Avatar"
             class="avatar">
@@ -19,14 +22,18 @@
 
         <div>
             <ul class="social-network social-circle">
-                <li><a href="/facebook/register" class="icoFacebook" title="Facebook"><i class="fa fa-facebook"></i></a></li>
-                <li><a href="/line/register" class="icoTwitter" title="Line"><i class="fa fa-comments"></i></a></li>
-                <li><a href="/google/register" class="icoGoogle" title="Google"><i class="fa fa-google"></i></a></li>
+                <li><a id="go" onClick="facebookCon()" class="icoFacebook" title="Facebook"><i
+                            class="fa fa-facebook"></i></a></li>
+                <li><a id="go" onClick="lineCon()" class="icoTwitter" title="Line"><i class="fa fa-comments"></i></a>
+                </li>
+                <li><a id="go" onClick="googleCon()" class="icoGoogle" title="Google"><i class="fa fa-google"></i></a>
+                </li>
             </ul>
         </div>
-        <a href="/logout" class="google btn"><i class="fa fa-long-arrow-down fa-fw">
-        </i> LogOut
-      </a>
+        <a onClick="alertLogOut()" class="google btn"><i class="fa fa-long-arrow-down fa-fw">
+            </i> LogOut
+        </a>
     </div>
 </body>
+
 </html>
